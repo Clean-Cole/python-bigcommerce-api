@@ -36,20 +36,16 @@ class Connection(object):
         return headers
     
 	def delete(self, url, params=None):
-	    """ Executes an HTTP DELETE request for the given URL.
-	
-	        ``params`` should be a dictionary
-	    """
+	    '''
+	    '''
 	    response = self.http.delete(url,
 	                                params=params,
 	                                **self.requests_params)
 	    return self.process(response)
 	
 	def get(self, url, data=None):
-	    """ Executes an HTTP GET request for the given URL.
-	
-	        ``data`` should be a dictionary of url parameters
-	    """
+	    '''
+	    '''
 	    response = self.http.get(url,
 	                             headers=self.headers,
 	                             params=data,
@@ -57,23 +53,23 @@ class Connection(object):
 	    return self.process(response)
 	
 	def post(self, url, body=None):
-	    """ Executes an HTTP POST request for the given URL. """
-	    response = self.http.post(url,
+		'''
+		'''
+		response = self.http.post(url,
 	                              headers=self.headers,
 	                              data=body,
 	                              **self.requests_params)
-	
-	    return self.process(response)
+		return self.process(response)
 	
 	def put(self, url, data=None, body=None):
-	    """ Executes an HTTP PUT request for the given URL. """
-	    response = self.http.put(url,
+		'''
+		'''
+		response = self.http.put(url,
 	                             headers=self.headers,
 	                             data=body,
 	                             params=data,
 	                             **self.requests_params)
-	
-	    return self.process(response)
+		return self.process(response)
 	
 	def process(self, response):
 	    try:
@@ -85,8 +81,8 @@ class Connection(object):
 
 
 class BigCommerce(object):
-    """ 
-    """
+    '''
+    '''
     def __init__(self, domain=None, api_user=None, api_key=None):
 		if not domain:
 			try:
@@ -112,10 +108,11 @@ class BigCommerce(object):
 
 
 class Orders(Connection):
-    """ Contains all API methods relating to Orders."""
+    '''
+    '''
     def __init__(self, *args, **kwargs):
-        kwargs['resource_name'] = 'inputs'
-        super(Input, self).__init__(*args, **kwargs)
+        #kwargs['resource_name'] = 'orders'
+        super(Orders, self).__init__(*args, **kwargs)
         
     def filter(self, params):
 	   return self.get(self.base_url + '/orders.json')
