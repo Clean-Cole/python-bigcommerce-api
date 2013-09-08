@@ -1,7 +1,7 @@
-from .core import BigCommerce
-from .core import BigCommerceResponseError
-from .core import __version__
+from .api import BigCommerce
+from .api import BigCommerceResponseError
+#from .api import __version__
 
-__title__ = 'BigCommerce'
+__title__ = 'bigcommerce'
 __author__ = 'Coleman Stevenson'
 
