@@ -1,17 +1,14 @@
 import requests, base64, os
+from requests.exceptions import ConnectionError
 
 class BigCommerceError(Exception):
 	pass
 
-class BigCommerceResponseError(Exception):
-	def __init__(self, http_response, content):
-		self.http_response = http_response
-		self.content = content
 
+class BigCommerceApiLimit(BigCommerceError):
+	pass
 
 class BigCommerce(object):
-	'''
-    '''
 	def __init__(self, domain=None, api_user=None, api_key=None):
 		if not domain:
 			try:
@@ -41,8 +38,22 @@ class BigCommerce(object):
 		
 		args = (self.domain, self.api_user, self.api_key)
 		kwargs = dict()
+		self.brands = Brands(*args, **kwargs)
+		self.categories = Categories(*args, **kwargs)
+		self.orderstatuses = OrderStatuses(*args, **kwargs)
+		self.customergroups = CustomerGroups(*args, **kwargs)
+		self.coupons = Coupons(*args, **kwargs)
+		self.time = Time(*args, **kwargs)
+		self.store = Store(*args, **kwargs)
+		self.countries = Countries(*args, **kwargs)
+		self.states = States(*args, **kwargs)
+		self.customers = Customers(*args, **kwargs)
+		self.addresses = Addresses(*args, **kwargs)
+		self.options = Options(*args, **kwargs)
 		self.orders = Orders(*args, **kwargs)
-
+		self.products = Products(*args, **kwargs)
+		self.redirects = Redirects(*args, **kwargs)
+		self.shipping = Shipping(*args, **kwargs)
 
 class Connection(object):
 	
@@ -67,52 +78,28 @@ class Connection(object):
             'cert': None,
             'verify': None,
         }
-
-	def handle_response(self, response):
-		pass
-
-
-	def delete(self, url, params=None):
-		'''
-		'''
-		response = self.http.delete(url,params=params,**self.requests_params)
-		return self.process(response)
-	
-	def get(self, url, data=None):
-		'''
-	    '''
-		response = self.http.get(url,
-	                             headers=self.headers,
-	                             params=data,
-	                             **self.requests_params)
-		return self.process(response)
-	
-	def post(self, url, body=None):
-		'''
-		'''
-		response = self.http.post(url,
-	                              headers=self.headers,
-	                              data=body,
-	                              **self.requests_params)
-		return self.process(response)
-	
-	def put(self, url, data=None, body=None):
-		'''
-		'''
-		response = self.http.put(url,
-	                             headers=self.headers,
-	                             data=body,
-	                             params=data,
-	                             **self.requests_params)
-		return self.process(response)
-	
+	def call(self, url, method='GET', data=None, body=None):
+		try:
+			if method == 'GET':
+				response = self.http.get(url, headers=self.headers, params=data, **self.requests_params)
+			elif method == 'POST':
+				response = self.http.post(url, headers=self.headers, data=body, **self.requests_params)
+			elif method == 'PUT':
+				response = self.http.put(url, headers=self.headers, data=body, params=data, **self.requests_params)
+			elif method == 'DELETE':
+				response = self.http.delete(url,params=data,**self.requests_params)
+			return self.process(response)
+		except ConnectionError,e:
+			if e.find('MaxRetryError') != -1:
+				raise BigCommerceApiLimit('BigCommerceApiLimit: API Limit for this url reached')
+		
 	def process(self, response):
 		try:
 			code = response.status_code
 			body = response.json()
 			return Response(code, body, response.content, response)
 		except ValueError:
-			raise BigCommerceResponseError(response, response.content)
+			raise BigCommerceError(response.content)
 
 class Response(object):
 	def __init__(self, code, body, raw_body, raw_response):
@@ -120,12 +107,183 @@ class Response(object):
 		self.body = body
 		self.raw_body = raw_body
 		self.raw_response = raw_response
+	
+class Brands(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/brands.json', 'GET', data)
+	def get(self, brand_id):
+		return self.call(self.base_url + '/brands/%s.json' % str(brand_id), 'GET')
+	def update(self, brand_id, data):
+		return self.call(self.base_url + '/brands/%s.json' % str(brand_id), 'PUT', data)
+	def count(self):
+		return self.call(self.base_url + '/brands/count.json', 'GET')
+	def delete(self, brand_id):
+		return self.call(self.base_url + '/brands/%s.json' % str(brand_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/brands.json', 'DELETE', data)
+	
+class Categories(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/categories.json', 'GET', data)
+	def get(self, category_id):
+		return self.call(self.base_url + '/categories/%s.json' % str(category_id), 'GET')
+	def update(self, category_id, data):
+		return self.call(self.base_url + '/categories/%s.json' % str(category_id), 'PUT', data)
+	def count(self):
+		return self.call(self.base_url + '/categories/count.json', 'GET')
+	def delete(self, category_id):
+		return self.call(self.base_url + '/categories/%s.json' % str(category_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/categories.json', 'DELETE', data)
+	
+class OrderStatuses(Connection):
+	def all(self):
+		return self.call(self.base_url + '/orderstatuses.json', 'GET')
+	def get(self, status_id):
+		return self.call(self.base_url + '/orderstatuses/%s.json' % str(status_id), 'GET')
 
+class CustomerGroups(Connection):
+	def all(self):
+		return self.call(self.base_url + '/customer_groups', 'GET')
+	def filter(self, data=None):
+		return self.call(self.base_url + '/customer_groups', 'GET', data)
+	def get(self, group_id):
+		return self.call(self.base_url + '/customer_groups/%s' % str(group_id), 'GET')
+	def create(self, data):
+		return self.call(self.base_url + '/customer_groups', 'POST', data)
+	def count(self):
+		return self.call(self.base_url + '/customer_groups/count', 'GET')
+	def delete(self, group_id):
+		return self.call(self.base_url + '/customer_groups/%s.json' % str(group_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/customer_groups', 'DELETE', data)
 
+class Coupons(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/coupons.json', 'GET', data)
+	def get(self, coupon_id):
+		return self.call(self.base_url + '/coupons/%s.json' % str(coupon_id), 'GET')
+	def update(self, coupon_id, data):
+		return self.call(self.base_url + '/coupons/%s.json' % str(coupon_id), 'PUT', data)
+	def count(self):
+		return self.call(self.base_url + '/coupons/count.json', 'GET')
+	def delete(self, coupon_id):
+		return self.call(self.base_url + '/coupons/%s.json' % str(coupon_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/coupons.json', 'DELETE', data)
+
+class Time(Connection):
+	def get(self):
+		return self.call(self.base_url + '/time.json', 'GET')
+	
+class Store(Connection):
+	def get(self):
+		return self.call(self.base_url + '/store.json', 'GET')
+	
+class Countries(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/countries', 'GET', data)
+	def get(self, country_id):
+		return self.call(self.base_url + '/countries/%s.json' % str(country_id), 'GET')
+	def count(self):
+		return self.call(self.base_url + '/countries/count.json', 'GET')
+	
+class States(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/countries/states.json', 'GET', data)
+	def get(self, state_id):
+		return self.call(self.base_url + '/countries/states/%s.json' % str(state_id), 'GET')
+	def count(self):
+		return self.call(self.base_url + '/countries/states/count.json', 'GET')
+	
+class Customers(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/customers.json', 'GET', data)
+	def get(self, customer_id):
+		return self.call(self.base_url + '/customers/%s.json' % str(customer_id), 'GET')
+	def update(self, customer_id, data):
+		return self.call(self.base_url + '/customers/%s.json' % str(customer_id), 'PUT', data)
+	def count(self):
+		return self.call(self.base_url + '/customers/count.json', 'GET')
+	def delete(self, customer_id):
+		return self.call(self.base_url + '/customers/%s.json' % str(customer_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/customers.json', 'DELETE', data)
+	
+class Addresses(Connection):
+	pass
+
+class Options(Connection):
+	def all(self):
+		return self.call(self.base_url + '/options.json', 'GET')
+	def filter(self, data=None):
+		return self.call(self.base_url + '/options.json', 'GET', data)
+	def get(self, option_id):
+		return self.call(self.base_url + '/options/%s.json' % str(option_id), 'GET')
+	def update(self, option_id, data):
+		return self.call(self.base_url + '/options/%s.json' % str(option_id), 'PUT', data)
+	def create(self, data):
+		return self.call(self.base_url + '/options.json', 'POST', data)
+	def count(self):
+		return self.call(self.base_url + '/options/count.json', 'GET')
+	def delete(self, option_id):
+		return self.call(self.base_url + '/options/%s.json' % str(option_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/options.json', 'DELETE', data)
+	
+# @TODO: Figure out a solution for handling sub Coupons, Products, Shipments, & Shipping Addresses
 class Orders(Connection):
-	'''
-    '''
-	def __init__(self, *args, **kwargs):
-		super(Orders, self).__init__(*args, **kwargs)
-	def filter(self, dict):
-		return self.get(self.base_url + '/orders.json', dict)
+	def filter(self, data=None):
+		return self.call(self.base_url + '/orders.json', 'GET', data)
+	def get(self, order_id):
+		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'GET')
+	def update(self, order_id, data):
+		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'PUT', data)
+	def create(self, data):
+		return self.call(self.base_url + '/orders.json', 'POST', data)
+	def count(self):
+		return self.call(self.base_url + '/orders/count.json', 'GET')
+	def delete(self, order_id):
+		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/orders.json', 'DELETE', data)
+
+# @TODO: Figure out a solution for handling sub SKUs, Fields, Discounts, Images, Options, Rules, & Videos
+class Products(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/products.json', 'GET', data)
+	def get(self, order_id):
+		return self.call(self.base_url + '/products/%s.json' % str(order_id), 'GET')
+	def update(self, order_id, data):
+		return self.call(self.base_url + '/products/%s.json' % str(order_id), 'PUT', data)
+	def create(self, data):
+		return self.call(self.base_url + '/products.json', 'POST', data)
+	def count(self):
+		return self.call(self.base_url + '/products/count.json', 'GET')
+	def delete(self, order_id):
+		return self.call(self.base_url + '/products/%s.json' % str(order_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/products.json', 'DELETE', data)
+	
+class Redirects(Connection):
+	def filter(self, data=None):
+		return self.call(self.base_url + '/redirects', 'GET', data)
+	def get(self, redirect_id):
+		return self.call(self.base_url + '/redirects/%s' % str(redirect_id), 'GET')
+	def create(self, data):
+		return self.call(self.base_url + '/redirects', 'POST', data)
+	def count(self):
+		return self.call(self.base_url + '/redirects/count', 'GET')
+	def delete(self, redirect_id):
+		return self.call(self.base_url + '/redirects/%s.json' % str(redirect_id), 'DELETE')
+	def delete_bulk(self, data=None):
+		return self.call(self.base_url + '/redirects', 'DELETE', data)
+	
+class Shipping(Connection):
+	def all(self):
+		return self.call(self.base_url + '/shipping/methods.json', 'GET')
+	def filter(self, data=None):
+		return self.call(self.base_url + '/shipping/methods.json', 'GET', data)
+	def get(self, method_id):
+		return self.call(self.base_url + '/shipping/methods/%s.json' % str(method_id), 'GET')
+	
