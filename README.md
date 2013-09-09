@@ -3,20 +3,43 @@ python-bigcommerce
 Python for the BigCommerce API
 
 *NOTE* 
-This package is still in development.
+This is still in development.
 
-Python package for the BigCommerce API 
-
-Installation
+Installation:
+requires requests
 ```
 $ pip install python-bigcommerce
 ```
 
+Usage:
+You can initalize an instance with your authentication credentials or set them as environment variables.
 
-Getting Started
 ```
 from bigcommerce import BigCommerce
-
 bc = BigCommerce('DOMAIN','USERNAME','API_KEY')
-bc.orders.filter({ 'limit': 10, 'page': 1 })
+```
+or
+```
+os.environ['BIGCOMMERCE_STORE_DOMAIN']
+os.environ['BIGCOMMERCE_API_USERNAME']
+os.environ['BIGCOMMERCE_API_KEY']
+```
+
+You can access resources with similar methods depending on their availability in the API.
+{Resoure}.{all,filter,get,create,update,count,delete,delete_bulk}
+```
+bc.time.get()
+
+result = bc.products.update("product_id", {
+	'name' => 'Super Happy Funtime Product!'
+})
+>>> result.status_code
+201
+>>> result.body
+{u'name': 'Super Happy Funtime Product!',...}
+
+
+bc.orders.filter({ 'limit': 10, 'page': page# })
+bc.orders.count()
+
 ```
