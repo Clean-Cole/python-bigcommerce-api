@@ -5,6 +5,11 @@ Python for the BigCommerce API
 *NOTE* 
 This is still in development.
 
+@TODO:
+Handle Nested rosources for Products and Orders
+Scope WebHooks API
+Add OPTIONS method
+
 Installation:
 requires requests
 ```
