@@ -20,9 +20,10 @@ bc = BigCommerce('DOMAIN','USERNAME','API_KEY')
 ```
 or
 ```
-os.environ['BIGCOMMERCE_STORE_DOMAIN']
-os.environ['BIGCOMMERCE_API_USERNAME']
-os.environ['BIGCOMMERCE_API_KEY']
+os.environ['BIGCOMMERCE_STORE_DOMAIN'] = ''
+os.environ['BIGCOMMERCE_API_USERNAME'] = ''
+os.environ['BIGCOMMERCE_API_KEY'] = ''
+bc = BigCommerce()
 ```
 
 You can access resources with similar methods depending on their availability in the API.
@@ -38,8 +39,12 @@ result = bc.products.update("product_id", {
 >>> result.body
 {u'name': 'Super Happy Funtime Product!',...}
 
-
+bc.customergroups.all()
 bc.orders.filter({ 'limit': 10, 'page': page# })
-bc.orders.count()
+bc.options.get(option_id=4)
+bc.products.create(data={})
+bc.orders.update(order_id='XXX', {})
+bc.coupons.delete(coupon_id='XXX')
+bc.coupons.delete_bulk(['A Collection of IDs','Or None to delete all'])
 
 ```
