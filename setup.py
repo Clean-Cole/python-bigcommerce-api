@@ -5,7 +5,7 @@ except ImportError:
 
 setup(name='python-bigcommerce',
       version='0.1',
-      description='Integration library for BigCommerce',
+      description='Python for the BigCommerce API',
       author='Coleman Stevenson',
       author_email='cole@imakethe.com',
       url='http://github.com/clean-cole/python-bigcommerce',

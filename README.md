@@ -1,7 +1,9 @@
 python-bigcommerce
 ==================
+Python for the BigCommerce API
 
-*NOTE* This package is still in development.  It will not work for you.
+*NOTE* 
+This package is still in development.
 
 Python package for the BigCommerce API 
 
