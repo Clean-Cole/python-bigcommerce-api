@@ -9,7 +9,7 @@ class BigCommerceApiLimit(BigCommerceError):
 	pass
 
 class BigCommerce(object):
-	def __init__(self, domain=None, api_user=None, api_key=None, modified_since=None):
+	def __init__(self, domain=None, api_user=None, api_key=None):
 		if not domain:
 			try:
 				self.domain = os.environ['BIGCOMMERCE_STORE_DOMAIN']
@@ -57,7 +57,7 @@ class BigCommerce(object):
 
 class Connection(object):
 	
-	def __init__(self, domain, api_user, api_key, modified_since=None):
+	def __init__(self, domain, api_user, api_key):
 		self.domain = domain
 		self.api_user = api_user
 		self.api_key = api_key
@@ -70,8 +70,6 @@ class Connection(object):
             'Authorization': 'Basic ' + auth,
             'User-Agent': 'python-bigcommerce v0.1'
         }
-		if modified_since and isinstance(modified_since, datetime.date) :
-			self.headers['If-Modified-Since'] = modified_since
 		
 		self.http.headers.update(self.headers)
 		
@@ -81,7 +79,12 @@ class Connection(object):
             'cert': None,
             'verify': None,
         }
-	def call(self, url, method='GET', data=None, body=None):
+	def call(self, url, method='GET', data=None, body=None, modified_since=None):
+		
+		if modified_since and isinstance(modified_since, datetime.date) :
+			self.headers['If-Modified-Since'] = modified_since
+			self.http.headers.update(self.headers)
+			
 		try:
 			if method == 'GET':
 				response = self.http.get(url, headers=self.headers, params=data, **self.requests_params)
@@ -112,8 +115,8 @@ class Response(object):
 		self.raw_response = raw_response
 	
 class Brands(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/brands.json', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/brands.json', 'GET', data, modified_since)
 	def get(self, brand_id):
 		return self.call(self.base_url + '/brands/%s.json' % str(brand_id), 'GET')
 	def update(self, brand_id, data):
@@ -126,8 +129,8 @@ class Brands(Connection):
 		return self.call(self.base_url + '/brands.json', 'DELETE', data)
 	
 class Categories(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/categories.json', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/categories.json', 'GET', data, modified_since)
 	def get(self, category_id):
 		return self.call(self.base_url + '/categories/%s.json' % str(category_id), 'GET')
 	def update(self, category_id, data):
@@ -146,10 +149,10 @@ class OrderStatuses(Connection):
 		return self.call(self.base_url + '/orderstatuses/%s.json' % str(status_id), 'GET')
 
 class CustomerGroups(Connection):
-	def all(self):
-		return self.call(self.base_url + '/customer_groups', 'GET')
-	def filter(self, data=None):
-		return self.call(self.base_url + '/customer_groups', 'GET', data)
+	def all(self, modified_since=None):
+		return self.call(self.base_url + '/customer_groups', 'GET', None, modified_since)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/customer_groups', 'GET', data, modified_since)
 	def get(self, group_id):
 		return self.call(self.base_url + '/customer_groups/%s' % str(group_id), 'GET')
 	def create(self, data):
@@ -162,8 +165,8 @@ class CustomerGroups(Connection):
 		return self.call(self.base_url + '/customer_groups', 'DELETE', data)
 
 class Coupons(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/coupons.json', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/coupons.json', 'GET', data, modified_since)
 	def get(self, coupon_id):
 		return self.call(self.base_url + '/coupons/%s.json' % str(coupon_id), 'GET')
 	def update(self, coupon_id, data):
@@ -200,8 +203,8 @@ class States(Connection):
 		return self.call(self.base_url + '/countries/states/count.json', 'GET')
 	
 class Customers(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/customers.json', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/customers.json', 'GET', data, modified_since)
 	def get(self, customer_id):
 		return self.call(self.base_url + '/customers/%s.json' % str(customer_id), 'GET')
 	def update(self, customer_id, data):
@@ -217,10 +220,10 @@ class Addresses(Connection):
 	pass
 
 class Options(Connection):
-	def all(self):
-		return self.call(self.base_url + '/options.json', 'GET')
-	def filter(self, data=None):
-		return self.call(self.base_url + '/options.json', 'GET', data)
+	def all(self, modified_since=None):
+		return self.call(self.base_url + '/options.json', 'GET', None, modified_since)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/options.json', 'GET', data, modified_since)
 	def get(self, option_id):
 		return self.call(self.base_url + '/options/%s.json' % str(option_id), 'GET')
 	def update(self, option_id, data):
@@ -236,7 +239,7 @@ class Options(Connection):
 	
 # @TODO: Figure out a solution for handling sub Coupons, Products, Shipments, & Shipping Addresses
 class Orders(Connection):
-	def filter(self, data=None):
+	def filter(self, data=None, modified_since=None):
 		return self.call(self.base_url + '/orders.json', 'GET', data)
 	def get(self, order_id):
 		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'GET')
@@ -253,8 +256,8 @@ class Orders(Connection):
 
 # @TODO: Figure out a solution for handling sub SKUs, Fields, Discounts, Images, Options, Rules, & Videos
 class Products(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/products.json', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/products.json', 'GET', data, modified_since)
 	def get(self, order_id):
 		return self.call(self.base_url + '/products/%s.json' % str(order_id), 'GET')
 	def update(self, order_id, data):
@@ -269,8 +272,8 @@ class Products(Connection):
 		return self.call(self.base_url + '/products.json', 'DELETE', data)
 	
 class Redirects(Connection):
-	def filter(self, data=None):
-		return self.call(self.base_url + '/redirects', 'GET', data)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/redirects', 'GET', data, modified_since)
 	def get(self, redirect_id):
 		return self.call(self.base_url + '/redirects/%s' % str(redirect_id), 'GET')
 	def create(self, data):
@@ -283,10 +286,10 @@ class Redirects(Connection):
 		return self.call(self.base_url + '/redirects', 'DELETE', data)
 	
 class Shipping(Connection):
-	def all(self):
-		return self.call(self.base_url + '/shipping/methods.json', 'GET')
-	def filter(self, data=None):
-		return self.call(self.base_url + '/shipping/methods.json', 'GET', data)
+	def all(self, modified_since=None):
+		return self.call(self.base_url + '/shipping/methods.json', 'GET', None, modified_since)
+	def filter(self, data=None, modified_since=None):
+		return self.call(self.base_url + '/shipping/methods.json', 'GET', data, modified_since)
 	def get(self, method_id):
 		return self.call(self.base_url + '/shipping/methods/%s.json' % str(method_id), 'GET')
 	
