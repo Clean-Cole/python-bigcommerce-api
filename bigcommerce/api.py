@@ -9,7 +9,7 @@ class BigCommerceApiLimit(BigCommerceError):
 	pass
 
 class BigCommerce(object):
-	def __init__(self, domain=None, api_user=None, api_key=None):
+	def __init__(self, domain=None, api_user=None, api_key=None, modified_since=None):
 		if not domain:
 			try:
 				self.domain = os.environ['BIGCOMMERCE_STORE_DOMAIN']
@@ -57,7 +57,7 @@ class BigCommerce(object):
 
 class Connection(object):
 	
-	def __init__(self, domain, api_user, api_key):
+	def __init__(self, domain, api_user, api_key, modified_since=None):
 		self.domain = domain
 		self.api_user = api_user
 		self.api_key = api_key
@@ -70,6 +70,9 @@ class Connection(object):
             'Authorization': 'Basic ' + auth,
             'User-Agent': 'python-bigcommerce v0.1'
         }
+		if modified_since and isinstance(modified_since, datetime.date) :
+			self.headers['If-Modified-Since'] = modified_since
+		
 		self.http.headers.update(self.headers)
 		
 		self.requests_params = {
