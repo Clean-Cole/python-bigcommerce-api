@@ -264,8 +264,8 @@ class Orders(Connection):
 			try:
 				prod_result = self.call(result.body['products']['url'], 'GET').body
 				result.body['products'] = [] if not prod_result else prod_result
-			except Exception:
-				pass # @todo: Clean this up
+			except Exception,e:
+				log.debug(e)
 		return result
 	def get(self, order_id, inc_products=False):
 		result = self.call(self.base_url + '/orders/%s.json' % str(order_id), 'GET')
@@ -274,7 +274,7 @@ class Orders(Connection):
 				prod_result = self.call(result.body['products']['url'], 'GET').body
 				result.body['products'] = [] if not prod_result else prod_result
 			except Exception,e:
-				pass # @todo: Clean this up
+				log.debug(e)
 		return result
 	def update(self, order_id, data):
 		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'PUT', data)
@@ -325,4 +325,3 @@ class Shipping(Connection):
 		return self.call(self.base_url + '/shipping/methods.json', 'GET', data, modified_since=modified_since)
 	def get(self, method_id):
 		return self.call(self.base_url + '/shipping/methods/%s.json' % str(method_id), 'GET')
-	
