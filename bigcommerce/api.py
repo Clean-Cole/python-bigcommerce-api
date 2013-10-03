@@ -1,10 +1,6 @@
 import requests, base64, os, datetime
 from requests.exceptions import ConnectionError
 
-import logging
-
-log = logging.getLogger(__name__)
-
 class BigCommerceError(Exception):
 	pass
 class BigCommerceErrorApiLimit(BigCommerceError):
@@ -265,7 +261,7 @@ class Orders(Connection):
 				prod_result = self.call(result.body['products']['url'], 'GET').body
 				result.body['products'] = [] if not prod_result else prod_result
 			except Exception,e:
-				log.debug(e)
+				pass
 		return result
 	def get(self, order_id, inc_products=False):
 		result = self.call(self.base_url + '/orders/%s.json' % str(order_id), 'GET')
@@ -274,7 +270,7 @@ class Orders(Connection):
 				prod_result = self.call(result.body['products']['url'], 'GET').body
 				result.body['products'] = [] if not prod_result else prod_result
 			except Exception,e:
-				log.debug(e)
+				pass
 		return result
 	def update(self, order_id, data):
 		return self.call(self.base_url + '/orders/%s.json' % str(order_id), 'PUT', data)
